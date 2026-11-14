@@ -5,10 +5,21 @@ const rules: Record<string, RegExp[]> = {
     /^auth\/me$/, /^users\/me$/, /^farmers\/me$/, /^buyers\/me$/,
     /^products$/, /^products\/[\w-]+$/, /^orders\/my$/, /^orders\/[\w-]+$/,
     /^admin\/(overview|activity|users|products|orders|schemes|surplus)$/,
+    /^buyer-requirements$/, /^buyer-requirements\/my$/, /^buyer-requirements\/[\w-]+$/,
+    /^wishlist$/,
   ],
-  POST: [/^auth\/register$/, /^auth\/login$/, /^products$/, /^orders$/, /^orders\/[\w-]+\/cancel$/, /^admin\/schemes$/],
-  PATCH: [/^products\/[\w-]+$/, /^orders\/[\w-]+\/status$/, /^admin\/users\/[\w-]+\/status$/, /^admin\/schemes\/[\w-]+$/],
-  DELETE: [/^products\/[\w-]+$/],
+  POST: [
+    /^auth\/register$/, /^auth\/login$/, /^products$/, /^orders$/, /^orders\/[\w-]+\/cancel$/, /^admin\/schemes$/,
+    /^buyer-requirements$/, /^wishlist\/[\w-]+$/,
+  ],
+  PATCH: [
+    /^products\/[\w-]+$/, /^orders\/[\w-]+\/status$/, /^admin\/users\/[\w-]+\/status$/, /^admin\/schemes\/[\w-]+$/,
+    /^buyer-requirements\/[\w-]+$/,
+  ],
+  DELETE: [
+    /^products\/[\w-]+$/,
+    /^buyer-requirements\/[\w-]+$/, /^wishlist\/[\w-]+$/,
+  ],
 };
 
 async function forward(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
