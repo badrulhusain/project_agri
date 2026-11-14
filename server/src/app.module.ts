@@ -12,6 +12,8 @@ import { ProfilesModule } from './profiles/profiles.module.js';
 import { ProductsModule } from './products/products.module.js';
 import { OrdersModule } from './orders/orders.module.js';
 import { AdminModule } from './admin/admin.module.js';
+import { BuyerRequirementsModule } from './buyer-requirements/buyer-requirements.module.js';
+import { WishlistModule } from './wishlist/wishlist.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 const configuration = ConfigModule.forRoot({
@@ -38,6 +40,8 @@ const configuration = ConfigModule.forRoot({
     ProductsModule,
     OrdersModule,
     AdminModule,
+    BuyerRequirementsModule,
+    WishlistModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
