@@ -16,12 +16,11 @@ The frontend sends these through a same-origin route handler. Both `.env.local` 
 
 | Feature | Frontend behavior |
 | --- | --- |
-| Agency registration, farmer connections, delegated permissions, transactions, commissions | Routes are present with explicit unavailable states. No agency action is presented as successful. |
-| Admin metrics, moderation, user management, schemes, commissions, settings | Routes are present with explicit unavailable states. |
+| Government/admin user management, moderation, scheme publishing, surplus oversight | Admin routes are present with explicit unavailable states. No admin action is presented as successful. |
 | Government scheme matching and official application details | Farmer schemes route explains the gap. |
 | Surplus quantities and buyer matching | Farmer surplus and buyers routes explain the gap. |
 | Wishlist persistence | Buyer wishlist route explains the gap. |
-| Image upload | Product form accepts an optional hosted image URL only. |
+| Image upload | The client uploads product photos to Cloudinary through its own authenticated server route. The backend receives the resulting HTTPS image URL in the product `images` field. |
 | Product stock adjustment after publishing | Edit form shows quantity as read-only; the documented update DTO does not include it. |
 | Farmer-specific product listing | The frontend filters the current public product page using the authenticated user and farmer profile IDs. This may miss products beyond the loaded page. |
 | Password reset, profile editing, notifications | Not exposed by the OpenAPI contract. |
@@ -33,3 +32,15 @@ The frontend sends these through a same-origin route handler. Both `.env.local` 
 - The public product list and an invalid login request were exercised through the frontend API bridge. The product list was empty when checked.
 - The OpenAPI document does not define success response schemas for login, registration, products, or orders. The frontend reads the observed `success/data` envelope and checks common JWT token field names, but a successful login/registration and order mutation still need testing with a provisioned test account.
 - Backend authorization remains authoritative. The frontend role guard is for navigation and user experience.
+
+## Scope change (14 Nov 2026)
+
+The agency portal (`/agency`) has been removed from the client. The government/admin portal (`/admin`) is now the single administrative surface and is expected to cover:
+
+- `/admin/dashboard` – platform overview
+- `/admin/users` – farmer and buyer account management
+- `/admin/products` – product moderation
+- `/admin/orders` – order monitoring
+- `/admin/schemes` – government scheme publishing
+- `/admin/surplus` – surplus product oversight
+- `/admin/settings` – platform configuration

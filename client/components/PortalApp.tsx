@@ -6,9 +6,12 @@ import { Suspense } from "react";
 import { Plus } from "lucide-react";
 import { PortalShell } from "./PortalShell";
 import {
-  BuyerDashboard, BuyerMarketplace, BuyerProductDetail, FarmerDashboard,
-  MyProducts, OrderList, ProductFormPage, ProfilePage, UnavailablePage,
+  AdminDashboard, AdminOrders, AdminProducts, AdminSettings, AdminSchemes, AdminSurplus, AdminUsers,
+} from "./AdminViews";
+import {
+  BuyerDashboard, BuyerMarketplace, FarmerDashboard, ProfilePage, UnavailablePage,
 } from "./PortalViews";
+import { BuyerProductDetail, MyProducts, OrderList, ProductFormPage } from "./PortalWorkflows";
 import type { Role } from "@/lib/api";
 
 type PageConfig = { title: string; description: string; content: React.ReactNode; action?: React.ReactNode };
@@ -43,31 +46,17 @@ function PortalBody({ role }: { role: Role }) {
     else if (section === "wishlist") page = { title: "Wishlist", description: "Products you would like to save.", content: unavailable("Saved products", "The API does not yet provide a wishlist endpoint, so products cannot be saved across visits.") };
     else if (section === "profile") page = { title: "Your profile", description: "Your account and buyer information.", content: <ProfilePage role="BUYER" /> };
     else page = { title: "Page not found", description: "", content: <Link href="/buyer/dashboard">Go to overview</Link> };
-  } else if (role === "AGENCY") {
-    const names: Record<string, [string, string]> = {
-      dashboard: ["Agency overview", "The API has no agency metrics or commission endpoints yet."],
-      farmers: [parts[1] === "new" ? "Register a farmer" : parts[1] ? "Farmer details" : "Connected farmers", "The API has no agency farmer registration, connection, or permission endpoints yet."],
-      products: ["Managed products", "The API has no agency product permissions or delegated management endpoints yet."],
-      connections: ["Connection requests", "The API has no agency connection endpoints yet."],
-      transactions: ["Transactions", "The API has no facilitated transaction endpoints yet."],
-      commissions: ["Commissions", "The API has no commission records or balances yet."],
-    };
-    const [title, detail] = names[section] ?? ["Page not found", "This agency route is unavailable."];
-    page = { title, description: role === "AGENCY" ? "Support farmers and connect them with markets." : "", content: unavailable(title, detail) };
+  } else if (role === "ADMIN") {
+    if (section === "dashboard") page = { title: "Platform overview", description: "Monitor users, products, orders, schemes, and surplus.", content: <AdminDashboard /> };
+    else if (section === "users" && !parts[1]) page = { title: "User management", description: "View, search, and manage farmer and buyer accounts.", content: <AdminUsers /> };
+    else if (section === "products" && !parts[1]) page = { title: "Product moderation", description: "Review every product listed on the marketplace.", content: <AdminProducts /> };
+    else if (section === "orders" && !parts[1]) page = { title: "Order monitoring", description: "Track orders placed across the platform.", content: <AdminOrders /> };
+    else if (section === "schemes" && !parts[1]) page = { title: "Government schemes", description: "Publish and maintain verified scheme information.", content: <AdminSchemes /> };
+    else if (section === "surplus" && !parts[1]) page = { title: "Surplus products", description: "Products that need attention because they remain unsold.", content: <AdminSurplus /> };
+    else if (section === "settings") page = { title: "Platform settings", description: "General configuration for the marketplace.", content: <AdminSettings /> };
+    else page = { title: "Page not found", description: "", content: <Link href="/admin/dashboard">Go to overview</Link> };
   } else {
-    const names: Record<string, [string, string]> = {
-      dashboard: ["Platform overview", "The API has no admin metrics or management endpoints yet."],
-      farmers: ["Farmers", "The API has no admin farmer management endpoint yet."],
-      buyers: ["Buyers", "The API has no admin buyer management endpoint yet."],
-      agencies: ["Agencies", "The API has no admin agency management endpoint yet."],
-      products: ["Products", "The API has no admin moderation endpoint yet."],
-      orders: ["Orders", "The API has no admin order management endpoint yet."],
-      schemes: ["Schemes", "The API has no scheme management endpoint yet."],
-      commissions: ["Commissions", "The API has no commission management endpoint yet."],
-      settings: ["Settings", "The API has no platform settings endpoint yet."],
-    };
-    const [title, detail] = names[section] ?? ["Page not found", "This admin route is unavailable."];
-    page = { title, description: "Manage the marketplace with clear oversight.", content: unavailable(title, detail) };
+    page = { title: "Unknown role", description: "", content: <UnavailablePage name="Unknown role" detail="This role does not have a portal configured." /> };
   }
 
   return <PortalShell role={role} title={page.title} description={page.description} action={page.action}>{page.content}</PortalShell>;

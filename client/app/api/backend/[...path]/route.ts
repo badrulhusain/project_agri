@@ -4,9 +4,10 @@ const rules: Record<string, RegExp[]> = {
   GET: [
     /^auth\/me$/, /^users\/me$/, /^farmers\/me$/, /^buyers\/me$/,
     /^products$/, /^products\/[\w-]+$/, /^orders\/my$/, /^orders\/[\w-]+$/,
+    /^admin\/(overview|activity|users|products|orders|schemes|surplus)$/,
   ],
-  POST: [/^auth\/register$/, /^auth\/login$/, /^products$/, /^orders$/, /^orders\/[\w-]+\/cancel$/],
-  PATCH: [/^products\/[\w-]+$/, /^orders\/[\w-]+\/status$/],
+  POST: [/^auth\/register$/, /^auth\/login$/, /^products$/, /^orders$/, /^orders\/[\w-]+\/cancel$/, /^admin\/schemes$/],
+  PATCH: [/^products\/[\w-]+$/, /^orders\/[\w-]+\/status$/, /^admin\/users\/[\w-]+\/status$/, /^admin\/schemes\/[\w-]+$/],
   DELETE: [/^products\/[\w-]+$/],
 };
 

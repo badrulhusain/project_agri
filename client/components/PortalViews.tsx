@@ -7,6 +7,9 @@ import { useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { ownedProducts, ProductCard, useFarmerId, useOrders, useProducts, ViewState } from "./PortalCommon";
+import {
+  AdminDashboard, AdminOrders, AdminProducts, AdminSettings, AdminSchemes, AdminSurplus, AdminUsers,
+} from "./AdminViews";
 export { BuyerProductDetail, MyProducts, OrderList, ProductFormPage } from "./PortalWorkflows";
 
 export function UnavailablePage({ name, detail }: { name: string; detail: string }) {

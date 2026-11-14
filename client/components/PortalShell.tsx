@@ -40,13 +40,11 @@ const navigation: Record<Role, NavItem[]> = {
   ],
   ADMIN: [
     { label: "Overview", href: "/admin/dashboard", icon: LayoutDashboard },
-    { label: "Farmers", href: "/admin/farmers", icon: Sprout },
-    { label: "Buyers", href: "/admin/buyers", icon: Users },
-    { label: "Agencies", href: "/admin/agencies", icon: Building2 },
+    { label: "Users", href: "/admin/users", icon: Users },
     { label: "Products", href: "/admin/products", icon: Package },
     { label: "Orders", href: "/admin/orders", icon: ClipboardList },
     { label: "Schemes", href: "/admin/schemes", icon: BookOpen },
-    { label: "Commissions", href: "/admin/commissions", icon: BadgeIndianRupee },
+    { label: "Surplus", href: "/admin/surplus", icon: TrendingUp },
     { label: "Settings", href: "/admin/settings", icon: Settings },
   ],
 };
