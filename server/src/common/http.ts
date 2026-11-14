@@ -52,15 +52,34 @@ export class ApiResponseInterceptor implements NestInterceptor {
   intercept(_context: ExecutionContext, next: CallHandler) {
     return next.handle().pipe(
       map((value: unknown) => {
-        if (
-          value &&
-          typeof value === 'object' &&
-          'meta' in value &&
-          'data' in value
-        ) {
-          return { success: true, ...value };
+        if (value && typeof value === 'object') {
+          const val = value as Record<string, unknown>;
+          if ('success' in val) {
+            return { message: 'Success', ...val };
+          }
+          if ('items' in val && 'meta' in val) {
+            return {
+              success: true,
+              data: { items: val.items, meta: val.meta },
+              items: val.items,
+              meta: val.meta,
+              message:
+                typeof val.message === 'string' ? val.message : 'Success',
+            };
+          }
+          if ('meta' in val && 'data' in val) {
+            return {
+              success: true,
+              message:
+                typeof val.message === 'string' ? val.message : 'Success',
+              ...val,
+            };
+          }
+          if ('data' in val && 'message' in val) {
+            return { success: true, ...val };
+          }
         }
-        return { success: true, data: value };
+        return { success: true, data: value, message: 'Success' };
       }),
     );
   }

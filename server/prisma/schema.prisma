@@ -53,6 +53,7 @@ model FarmerProfile {
   updatedAt   DateTime  @updatedAt
   products    Product[]
   orders      Order[]
+  surplusAlerts SurplusAlert[]
 }
 
 model BuyerProfile {
@@ -85,10 +86,59 @@ model Product {
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   orderItems        OrderItem[]
+  surplusAlerts     SurplusAlert[]
 
   @@index([status, createdAt])
   @@index([farmerId])
   @@index([category])
+}
+
+enum SchemeStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum SurplusStatus {
+  OPEN
+  RESOLVED
+  CANCELLED
+}
+
+model Scheme {
+  id                  String       @id @default(uuid()) @db.Uuid
+  name                String
+  description         String
+  department          String       @default("Department of Agriculture")
+  benefits            String
+  eligibilityCriteria String?
+  requiredDocuments   String[]     @default([])
+  applicationProcess  String?
+  officialUrl         String?
+  state               String?
+  deadline            DateTime?
+  status              SchemeStatus @default(PUBLISHED)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model SurplusAlert {
+  id              String        @id @default(uuid()) @db.Uuid
+  farmerId        String        @db.Uuid
+  farmer          FarmerProfile @relation(fields: [farmerId], references: [id], onDelete: Restrict)
+  productId       String        @db.Uuid
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  surplusQuantity Decimal       @db.Decimal(14, 3)
+  reason          String?
+  status          SurplusStatus @default(OPEN)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([status, createdAt])
+  @@index([farmerId])
+  @@index([productId])
 }
 
 model Order {

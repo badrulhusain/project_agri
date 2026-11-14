@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { ProfilesModule } from './profiles/profiles.module.js';
 import { ProductsModule } from './products/products.module.js';
 import { OrdersModule } from './orders/orders.module.js';
+import { AdminModule } from './admin/admin.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 const configuration = ConfigModule.forRoot({
@@ -36,6 +37,7 @@ const configuration = ConfigModule.forRoot({
     ProfilesModule,
     ProductsModule,
     OrdersModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
