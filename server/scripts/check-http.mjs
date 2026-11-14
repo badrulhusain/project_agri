@@ -46,6 +46,7 @@ try {
     body: JSON.stringify({
       name: 'Invalid Admin',
       email: 'test@example.test',
+      phone: '+919000000099',
       password: 'ExamplePassword123!',
       role: 'ADMIN',
     }),

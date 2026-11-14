@@ -51,7 +51,8 @@ async function account(
 ): Promise<Account> {
   const result = await api('POST', '/auth/register', undefined, {
     name: `Smoke ${label}`,
-    email: `${label}-${run}@example.test`,
+    ...(label === 'farmer' ? {} : { email: `${label}-${run}@example.test` }),
+    phone: `+91${randomBytes(6).readUIntBE(0, 6).toString().padStart(15, '0').slice(-10)}`,
     password: 'SmokePassword123!',
     role,
   });
@@ -220,6 +221,7 @@ describe('real PostgreSQL + compiled HTTP backend', () => {
         await api('POST', '/auth/register', undefined, {
           name: 'Unauthorized Admin',
           email: `admin-${run}@example.test`,
+          phone: '+919000000099',
           password: 'SmokePassword123!',
           role: 'ADMIN',
         })
