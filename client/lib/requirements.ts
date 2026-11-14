@@ -169,8 +169,10 @@ export function useRequirements() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setRequirements(getBuyerRequirements());
-    setMounted(true);
+    queueMicrotask(() => {
+      setRequirements(getBuyerRequirements());
+      setMounted(true);
+    });
 
     const handleUpdate = () => {
       setRequirements(getBuyerRequirements());

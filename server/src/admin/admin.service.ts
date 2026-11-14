@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import type { ProductStatus, SurplusStatus } from '@prisma/client';
+import type { ProductStatus } from '@prisma/client';
+import type { SurplusStatus } from './admin.dto.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { PageDto, pageMeta } from '../common/dto.js';
 import {
@@ -89,28 +90,28 @@ export class AdminService {
     ]);
 
     const recentActivity = [
-      ...recentOrders.map((o) => ({
+      ...recentOrders.map((o: any) => ({
         id: o.id,
         type: 'ORDER_PLACED' as const,
         description: `Order #${o.orderNumber.slice(0, 8)} placed for ₹${o.totalAmount.toString()} (${o.status})`,
         timestamp: o.createdAt,
       })),
-      ...recentProducts.map((p) => ({
+      ...recentProducts.map((p: any) => ({
         id: p.id,
         type: 'PRODUCT_CREATED' as const,
         description: `Product "${p.name}" (${p.category}) listed at ₹${p.pricePerUnit.toString()}/${p.unit}`,
         timestamp: p.createdAt,
       })),
-      ...recentUsers.map((u) => ({
+      ...recentUsers.map((u: any) => ({
         id: u.id,
         type: 'USER_REGISTERED' as const,
         description: `User "${u.name}" registered as ${u.role}`,
         timestamp: u.createdAt,
       })),
-      ...recentSchemes.map((s) => ({
+      ...recentSchemes.map((s: any) => ({
         id: s.id,
         type: 'SCHEME_PUBLISHED' as const,
-        description: `Scheme "${s.name}" is ${s.status.toLowerCase()}`,
+        description: `Scheme "${s.name}" is ${String(s.status).toLowerCase()}`,
         timestamp: s.createdAt,
       })),
     ]

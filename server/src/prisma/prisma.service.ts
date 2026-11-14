@@ -9,6 +9,8 @@ export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
+  [key: string]: any;
+
   constructor(config: ConfigService) {
     super({
       adapter: new PrismaPg({

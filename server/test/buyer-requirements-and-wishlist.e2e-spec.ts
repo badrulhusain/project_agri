@@ -186,7 +186,9 @@ afterAll(async () => {
       if (createdProductId) {
         await db.product.deleteMany({ where: { id: createdProductId } }).catch(() => {});
       }
-      await db.farmerProfile.deleteMany({ where: { userId: farmerUserId } }).catch(() => {});
+      if (farmerProfileId) {
+        await db.farmerProfile.deleteMany({ where: { id: farmerProfileId } }).catch(() => {});
+      }
       await db.user.delete({ where: { id: farmerUserId } }).catch(() => {});
     }
     await db.$disconnect();

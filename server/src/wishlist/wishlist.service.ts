@@ -31,7 +31,7 @@ export class WishlistService {
       },
     });
 
-    return items.map((item) => {
+    return items.map((item: any) => {
       const quantityStr = item.product.quantity.toString();
       const availQuantityStr = item.product.availableQuantity.toString();
       const priceStr = item.product.pricePerUnit.toString();
