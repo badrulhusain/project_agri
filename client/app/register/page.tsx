@@ -10,13 +10,13 @@ type Role = "farmer" | "buyer" | "agency";
 const roles: { id: Role; title: string; description: string }[] = [
   { id: "farmer", title: "I grow food", description: "Share your harvest and reach more buyers." },
   { id: "buyer", title: "I buy produce", description: "Find fresh supply for your business." },
-  { id: "agency", title: "I support farmers", description: "Help local growers access new markets." },
+  { id: "agency", title: "I support farmers", description: "Agency signup is not available from the current API." },
 ];
 
 function ChooseRole() {
   const searchParams = useSearchParams();
   const requestedRole = searchParams.get("role");
-  const initialRole = roles.find((item) => item.id === requestedRole)?.id ?? null;
+  const initialRole = requestedRole === "farmer" || requestedRole === "buyer" ? requestedRole : null;
   const [role, setRole] = useState<Role | null>(initialRole);
 
   return (
@@ -46,6 +46,7 @@ function ChooseRole() {
                 type="button"
                 className={`role-option ${role === item.id ? "role-option-selected" : ""}`}
                 onClick={() => setRole(item.id)}
+                disabled={item.id === "agency"}
                 key={item.id}
                 aria-pressed={role === item.id}
               >

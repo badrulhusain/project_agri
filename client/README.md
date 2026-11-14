@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# vithu frontend
 
-## Getting Started
+Next.js 16 frontend for the agricultural marketplace. All frontend work lives in `client/`; the backend is a separate application.
 
-First, run the development server:
+## Run locally
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```powershell
+npm install
+Copy-Item .env.example .env.local
+npm.cmd run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`API_BASE_URL` points at the backend's `/api` base URL. Set the local `.env.local` to `http://127.0.0.1:3001/api`, matching the address the backend binds. Start the backend on port 3001 and the client on port 3000 in separate terminals. Restart the Next.js development server after changing `.env.local`. Browser requests go through `/api/backend/*` so the frontend and API share an origin; the route handler forwards only documented endpoints.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available flows
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Farmer and buyer registration, login, session restoration, logout, and role navigation.
+- Farmer dashboard, product list, six-step product creation/editing, deletion, orders, and profile.
+- Buyer dashboard, searchable marketplace, product details, order placement, orders, and profile.
+- Agency and admin route structures with explicit states for features absent from the current API.
+- Farmer schemes, surplus, buyer connections, and buyer wishlist routes with explicit API-gap states.
 
-## Learn More
+The backend uses JWT bearer authentication. The frontend keeps the token in the current tab's `sessionStorage`; closing the tab ends that session. Authentication and product/order authorization remain controlled by the backend.
 
-To learn more about Next.js, take a look at the following resources:
+See [API_GAPS.md](./API_GAPS.md) for missing endpoints and verification limits.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Check
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```powershell
+npm run lint
+npm run build
+```
