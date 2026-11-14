@@ -72,6 +72,7 @@ describe('boundary validation', () => {
     const input = plainToInstance(RegisterDto, {
       name: 'Test Admin',
       email: 'TEST@EXAMPLE.TEST',
+      phone: '+919000000001',
       password: 'DemoPassword123!',
       role: 'ADMIN',
     });

@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { roleHome, useAuth } from "@/lib/auth";
 
+<<<<<<< HEAD
 const schema = z.object({
   name: z.string().trim().min(2, "Enter your full name."),
   email: z.union([z.email("Enter a valid email address."), z.literal("")]).optional(),
@@ -16,10 +17,27 @@ const schema = z.object({
   password: z.string().min(10, "Use at least 10 characters.").max(72, "Use 72 characters or fewer."),
 });
 type FormValues = z.infer<typeof schema>;
+=======
+type Role = "farmer" | "buyer" | "agency";
+
+type RegistrationFields = {
+  name: string;
+  phone: string;
+  email?: string;
+  password: string;
+};
+
+const roleNames: Record<Role, string> = {
+  farmer: "Farmer",
+  buyer: "Buyer",
+  agency: "Agency",
+};
+>>>>>>> 98e1e03b8776b58bf3e2b5b63783954755a122f0
 
 function RegistrationDetails() {
   const router = useRouter();
   const searchParams = useSearchParams();
+<<<<<<< HEAD
   const role = searchParams.get("role");
   const { register: createAccount } = useAuth();
   const [serverError, setServerError] = useState("");
@@ -27,6 +45,15 @@ function RegistrationDetails() {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
+=======
+  const requestedRole = searchParams.get("role");
+  const role: Role | null =
+    requestedRole === "farmer" || requestedRole === "buyer" || requestedRole === "agency"
+      ? requestedRole
+      : null;
+  const [message, setMessage] = useState("");
+  const [fields, setFields] = useState<RegistrationFields>({ name: "", phone: "", password: "" });
+>>>>>>> 98e1e03b8776b58bf3e2b5b63783954755a122f0
 
   if (role !== "farmer" && role !== "buyer") {
     return (
@@ -76,6 +103,7 @@ function RegistrationDetails() {
           <p className="eyebrow">Step 2 of 2 · {role === "farmer" ? "Farmer" : "Buyer"} account</p>
           <h2>Tell us about yourself.</h2>
           <p>Enter your details to get started.</p>
+<<<<<<< HEAD
           <form className="auth-form" onSubmit={handleSubmit(submit)}>
             <label>Full name<input type="text" autoComplete="name" placeholder="Your name" aria-invalid={!!errors.name} {...register("name")} />{errors.name && <small className="field-error">{errors.name.message}</small>}</label>
             <label>Phone number<input type="tel" autoComplete="tel" inputMode="tel" placeholder="e.g. +919000000001" aria-invalid={!!errors.phone} {...register("phone")} />{errors.phone && <small className="field-error">{errors.phone.message}</small>}</label>
@@ -83,6 +111,27 @@ function RegistrationDetails() {
             <label>Password<input type="password" autoComplete="new-password" placeholder="At least 10 characters" aria-invalid={!!errors.password} {...register("password")} />{errors.password && <small className="field-error">{errors.password.message}</small>}</label>
             {serverError && <p className="auth-message" role="alert">{serverError}</p>}
             <button className="button button-green auth-submit" type="submit" disabled={isSubmitting}>{isSubmitting ? "Creating account…" : "Create account"} <span aria-hidden="true">↗</span></button>
+=======
+          <form
+            className="auth-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setMessage("Account registration is not connected to the backend yet. No details were submitted.");
+            }}
+          >
+            <label>Full name<input name="name" type="text" autoComplete="name" required value={fields.name} onChange={(event) => setFields({ ...fields, name: event.target.value })} placeholder="Your name" /></label>
+            <label>Phone number<input name="phone" type="tel" autoComplete="tel" required value={fields.phone} onChange={(event) => setFields({ ...fields, phone: event.target.value })} pattern={"\\+?[1-9]\\d{7,14}"} title="Enter 8 to 15 digits, optionally starting with +" placeholder="Your phone number" /></label>
+            {role !== "farmer" && (
+              <label>
+                {role === "buyer" ? "Business name" : "Agency name"}
+                <input name="organization" type="text" required placeholder={role === "buyer" ? "Your business" : "Your agency"} />
+              </label>
+            )}
+            <label>Email address (optional)<input name="email" type="email" autoComplete="email" value={fields.email ?? ""} onChange={(event) => setFields({ ...fields, email: event.target.value || undefined })} placeholder="you@example.com" /></label>
+            <label>Password<input name="password" type="password" autoComplete="new-password" minLength={8} required value={fields.password} onChange={(event) => setFields({ ...fields, password: event.target.value })} placeholder="At least 8 characters" /></label>
+            <button className="button button-green auth-submit" type="submit">Create account <span aria-hidden="true">↗</span></button>
+            {message && <p className="auth-message" role="status">{message}</p>}
+>>>>>>> 98e1e03b8776b58bf3e2b5b63783954755a122f0
           </form>
         </div>
       </div>
