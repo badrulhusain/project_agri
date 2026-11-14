@@ -1,126 +1,136 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Agricultural Marketplace API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS 12 + PostgreSQL + Prisma 7 backend for the reduced scope in [ONE_HOUR_PLAN.md](ONE_HOUR_PLAN.md). Runs independently of the frontend. All implementation lives in `server/`.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Implemented: farmer/buyer registration, email-or-phone login, JWT authentication, current user/profiles, product listings and owner management, single-farmer orders, atomic stock reservation, guarded fulfilment transitions, and exactly-once cancellation/rejection restoration. APIs use `/api`; Swagger is at `http://127.0.0.1:3001/api/docs`.
 
-## Description
+## Setup
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Use the existing supported Node installation (this workspace uses Node 26). Prisma 7 requires a compatible modern Node version. In PowerShell use `npm.cmd`/`npx.cmd` because this machine blocks `npm.ps1`.
 
-## Project setup
+Run inside `server/`:
 
-```bash
-$ npm install
+```powershell
+npm.cmd ci
+npm.cmd run env:setup
 ```
 
-## Compile and run the project
+Edit `.env` locally. Never paste credentials into chat or commit them.
 
-```bash
-# development
-$ npm run start
+For Supabase, open your project dashboard **Connect -> Session pooler**, select the URI, replace the password placeholder locally, and save it as `DATABASE_URL` in `.env`. Copy the exact pooler hostname/username shown by Supabase; do not guess them. Session mode uses port 5432 and works on IPv4 networks. URL-encode special characters in the password. The HTTPS project URL and publishable/service keys are not PostgreSQL credentials. See the [Supabase Prisma guide](https://supabase.com/docs/guides/database/prisma).
 
-# watch mode
-$ npm run start:dev
+`env:setup` fills missing local defaults and generates JWT/demo secrets without printing them. It preserves existing configured values and does not invent a database password. If using transaction-mode pooling on port 6543 later, configure a separate direct/session `DIRECT_URL` for migrations; otherwise leave it empty.
 
-# production mode
-$ npm run start:prod
+The initial migration enables RLS on all six backend tables and revokes `anon`/`authenticated` Data API access. Clients access these tables through NestJS, so no browser-facing RLS policies are created. The database account must own the tables or have appropriate backend privileges. This MVP keeps its NestJS JWT authentication; it does not use Supabase Auth. Prisma migration files remain the source of schema history.
+
+| Variable                                | Meaning                                                                                                      |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `DATABASE_URL`                          | Existing PostgreSQL connection URL with provider-required SSL options. Use a dedicated development database. |
+| `DIRECT_URL`                            | Optional direct/session connection for Prisma migrations; falls back to DATABASE_URL. |
+| `JWT_SECRET`                            | Random secret of at least 32 characters; placeholders are rejected.                                          |
+| `JWT_EXPIRES_IN`                        | Duration such as `1h`; default `1h`.                                                                         |
+| `PORT`                                  | Backend port, default `3001`. Server binds to `127.0.0.1` for local development.                             |
+| `CLIENT_URL`                            | Comma-separated allowed origins, default `http://localhost:3000`. No wildcard.                               |
+| `DEMO_PASSWORD`                         | Password for newly seeded demo accounts: 10-72 printable ASCII characters.                                   |
+| `OBSERVE_APP_KEY`, `OBSERVE_APP_SECRET` | Optional existing Observe integration. Enabled only when both are configured.                                |
+| `TEST_DATABASE_URL`                     | Optional separate migrated PostgreSQL database for HTTP smoke tests; otherwise tests use `DATABASE_URL`.     |
+
+`npm.cmd run env:setup` generates the local JWT secret and demo password if missing. You can inspect these locally in `.env`; they are never logged by the setup script.
+
+```powershell
+npm.cmd run db:generate
+npm.cmd run db:check
+npm.cmd run db:migrate
+npm.cmd run db:seed
+npm.cmd run build
+npm.cmd run start:prod
 ```
 
-## Run tests
+`db:migrate` applies the checked-in migration. Use an empty development database or review compatibility before applying to a database with existing tables named User/Product/Order. Do not use reset or force-push commands against an existing database. `db:seed` preserves existing rows and stock; changing `DEMO_PASSWORD` does not reset existing seeded passwords. `npm.cmd run start:dev` starts watch mode.
 
-```bash
-# unit tests
-$ npm run test
+## Demo accounts
 
-# e2e tests
-$ npm run test:e2e
+The seed creates `farmer1@example.test` through `farmer3@example.test`, `buyer1@example.test` through `buyer3@example.test`, and `admin@example.test`. New accounts use your configured `DEMO_PASSWORD`. These are fictional accounts. The ADMIN account has current-user access only; no admin management API exists in this scope.
 
-# test coverage
-$ npm run test:cov
+Six products belong to farmer1: tomatoes, bananas, coconuts, rice, carrots, and turmeric. The tomato ID is `a0000000-0000-4000-8000-000000000001`; initial stock is 500 kg. Repeated seeding does not reset stock. Orders are created through the API/smoke flow rather than bypassing inventory rules in the seed.
+
+## API contract
+
+Responses use `{ "success": true, "data": ... }`; lists also have `meta: { page, limit, total, totalPages }`. Errors use `{ "success": false, "message": ... }` and an appropriate HTTP status. Password hashes are never selected for user responses. Unknown request fields are rejected.
+
+| Method        | Route after `/api`           | Access                                       |
+| ------------- | ---------------------------- | -------------------------------------------- |
+| POST          | `/auth/register`             | Public; FARMER or BUYER only                 |
+| POST          | `/auth/login`                | Public; `identifier` is email or exact phone |
+| GET           | `/auth/me`, `/users/me`      | Active authenticated user                    |
+| GET           | `/farmers/me`                | FARMER                                       |
+| GET           | `/buyers/me`                 | BUYER                                        |
+| GET           | `/products`, `/products/:id` | Public, available active listings only       |
+| POST          | `/products`                  | FARMER                                       |
+| PATCH, DELETE | `/products/:id`              | Owning FARMER; DELETE deactivates            |
+| POST          | `/orders`                    | BUYER                                        |
+| GET           | `/orders/my`, `/orders/:id`  | Owning BUYER or FARMER                       |
+| PATCH         | `/orders/:id/status`         | Owning FARMER                                |
+| POST          | `/orders/:id/cancel`         | Owning BUYER; pending orders only            |
+
+Supply `Authorization: Bearer <accessToken>` on protected calls. Owner IDs come from authentication, never the body. Resource `farmerId`/`buyerId` refer to profile IDs; `user.id` is a separate identity. Public products do not expose farmer contact details.
+
+Product list queries: `page` (default 1), `limit` (default 10, max 100), `search`, `category`, `location`. Lists are newest first with ID as a stable tiebreaker. Route UUIDs are validated.
+
+Money and quantities are decimal **strings**. Currency is INR. Prices have at most two fractional digits; quantities have at most three. Item totals round half up to two decimal places; order totals sum rounded item totals. Items below INR 0.01 after rounding are rejected. Order prices/totals are calculated on the server and stored as snapshots.
+
+Create a product:
+
+```json
+{
+  "name": "Tomatoes",
+  "category": "Vegetables",
+  "description": "Fresh harvest",
+  "quantity": "500",
+  "unit": "kg",
+  "pricePerUnit": "25.00",
+  "location": "Coimbatore, Tamil Nadu",
+  "images": []
+}
 ```
 
-## Deployment
+Updates accept descriptive fields, unit, price, location, and HTTPS image URLs. Quantity and availability cannot be overwritten. Uploads and restocking are deferred. Deactivation hides a listing while retaining existing order references.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Place an order:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```json
+{
+  "items": [
+    { "productId": "a0000000-0000-4000-8000-000000000001", "quantity": "300" }
+  ],
+  "deliveryAddress": "Demo market, Coimbatore",
+  "notes": "Demo pickup arrangement"
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Orders allow 1-50 distinct products from one farmer. Duplicate products and mixed-farmer carts are rejected. Stock is reserved immediately. Payments, shipping, taxes, automatic reservation expiry, and external contact are outside this scope.
 
-## Observability
+Farmer transitions: `PENDING -> CONFIRMED -> COMPLETED`, or `PENDING -> REJECTED`. Buyer cancellation: `PENDING -> CANCELLED`. Send `{ "status": "CONFIRMED" }` to the status endpoint. Terminal transitions return 409. Restoration and status changes share a transaction, preventing double restock. Inactive listings stay inactive after restoration.
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+PostgreSQL row locks and conditional updates protect stock; an order commits or rolls back as a whole. Database constraints enforce positive quantities/prices/totals and stock within its initial quantity. Request idempotency keys are deferred: retrying order creation may create another order if stock remains. Avoid automatic POST retries after ambiguous network failures.
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+## Verification
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-This project is already instrumented. To connect it, run this and approve the code it prints at [observe.nestjs.com/link](https://observe.nestjs.com/link) - signing up for free if you have no account:
-
-```bash
-$ npx @nestjs/observe link
+```powershell
+npm.cmd run test
+npm.cmd run lint
+npm.cmd run build
+npm.cmd run test:smoke
 ```
 
-It writes the app key and secret into `.env` and makes every `nest start` script (`start`, `start:dev`, `start:debug`) load it. In production, set `OBSERVE_APP_KEY` and `OBSERVE_APP_SECRET` in the environment instead.
+Unit tests need no database credentials. `test:smoke` builds and starts the compiled backend on a free local port against real PostgreSQL. Migrate the selected database first. It verifies auth/roles/ownership, inactive users, stock reduction, insufficient stock, concurrent overselling, cart rollback, transitions, price snapshots, deactivation, and concurrent cancellation. Uniquely named fixtures are created and only those fixtures are removed afterward. No data reset is performed. Use a development/test database. Tests fail clearly if no database URL is configured; they do not substitute memory storage.
 
-Or do it by hand: create an application and an API key at [observe.nestjs.com](https://observe.nestjs.com), and set the pair as `OBSERVE_APP_KEY` and `OBSERVE_APP_SECRET` in the environment the app runs in.
+To migrate a separate test database, temporarily set `DATABASE_URL` to that database in your PowerShell session before `npm.cmd run db:migrate`. Variables loaded from `.env` are not exported into the parent shell. The simplest setup uses the same dedicated development `DATABASE_URL` for migration and smoke tests.
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+The local default limits API requests to 120/minute per IP per process; login and registration each allow 10/minute. Distributed rate limiting, refresh/session revocation, and deployment proxy settings are deferred.
 
-## Resources
+## Deferred scope and limits
 
-Check out a few resources that may come in handy when working with NestJS:
+The original [plan.md](plan.md) remains the full backlog. Agencies/commissions, schemes/recommendations, surplus/matching, AI agents, notifications, wishlist, Cloudinary, password reset/email, profile edits, dashboards, category administration, and full admin management are not implemented. No AI/storage/external messaging credentials are required. There are no placeholder success endpoints for these features.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This is a local demo backend. Build/unit success does not establish live database correctness; see [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for the checks actually completed.
