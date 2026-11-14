@@ -18,3 +18,45 @@
 @media(max-width:1100px){.portal-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.portal-filter-bar{grid-template-columns:1fr 1fr}.portal-two-col{grid-template-columns:1fr}}
 @media(max-width:800px){.portal-shell{display:block}.portal-sidebar{display:none}.portal-topbar{justify-content:space-between;position:sticky;top:0;z-index:20}.portal-mobile-brand{display:flex;font-size:20px}.portal-topbar>span{display:none}.portal-content{padding:28px 5% 110px}.portal-bottom-nav{position:fixed;z-index:30;bottom:0;left:0;right:0;display:flex;justify-content:space-around;background:#fff;border-top:1px solid #dfe8df;padding:7px 6px max(7px,env(safe-area-inset-bottom))}.portal-bottom-nav a{display:grid;justify-items:center;gap:3px;min-width:67px;color:#7a8e7c;font-size:10px;font-weight:700}.portal-bottom-nav a.portal-nav-active{color:#0a7147}.portal-page-heading{align-items:flex-start}.portal-page-heading h1{font-size:31px}.portal-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.portal-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:550px){.portal-page-heading{display:grid}.portal-stat-grid,.portal-product-grid,.portal-detail-grid{grid-template-columns:1fr}.portal-stat{min-height:112px}.portal-filter-bar{grid-template-columns:1fr}.portal-results-head{align-items:flex-start;flex-direction:column}.portal-product-image{height:210px}.portal-form-step{padding:23px 17px}.portal-form-grid{grid-template-columns:1fr}.portal-stepper{overflow:auto;display:flex}.portal-stepper button{min-width:74px;flex-direction:column}.portal-detail-image{height:280px}.portal-order-meta{gap:8px}.portal-page-heading h1{font-size:29px}}
+
+/* Wishlist and Buyer Requirements Additions */
+.portal-wishlist-toggle{position:absolute;top:10px;right:10px;z-index:10;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.95);border:1px solid #d4e1d4;box-shadow:0 2px 6px rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s ease,background-color .15s ease;padding:0}
+.portal-wishlist-toggle:hover{transform:scale(1.12);background:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.14)}
+.portal-wishlist-toggle.active{background:#fff5f5;border-color:#feb2b2}
+
+.portal-req-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px}
+.portal-req-card{background:#fff;border:1px solid #e1e9df;border-radius:14px;padding:22px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 4px 14px rgba(18,54,42,0.04);transition:transform .15s ease,box-shadow .15s ease}
+.portal-req-card:hover{box-shadow:0 6px 20px rgba(18,54,42,0.08)}
+.portal-req-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.portal-req-head h3{margin:6px 0 0;font-size:19px;letter-spacing:-.4px;color:#172f25}
+.portal-badge{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:4px 10px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.portal-badge-urgent{background:#ffe3e3;color:#c92a2a}
+.portal-badge-high{background:#fff3bf;color:#d9480f}
+.portal-badge-normal{background:#e6fcf5;color:#0ca678}
+.portal-badge-open{background:#e7f5ff;color:#1971c2}
+.portal-badge-fulfilled{background:#ebfbee;color:#2b8a3e}
+.portal-badge-closed{background:#f1f3f5;color:#868e96}
+
+.portal-req-meta-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:#f7faf6;border-radius:10px;padding:12px 14px;margin:14px 0}
+.portal-req-meta-item strong{display:block;font-size:15px;color:#0b6943}
+.portal-req-meta-item span{font-size:11px;color:#697d70;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.portal-req-desc{font-size:13px;line-height:1.6;color:#4a5c51;margin:0 0 16px}
+.portal-req-buyer-info{border-top:1px solid #e9eee7;padding-top:14px;margin-top:8px;font-size:12px}
+.portal-req-buyer-name{font-weight:700;color:#1a3c2b}
+.portal-req-buyer-sub{color:#7b8e7f;font-size:11px}
+
+.portal-contact-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.portal-contact-btn{border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:1px solid #c9decb;background:#fff;color:#10593a;text-decoration:none}
+.portal-contact-btn:hover{background:#f1f8ee;border-color:#0d6543}
+.portal-contact-btn-primary{background:#0d6543;color:#fff;border-color:#0d6543}
+.portal-contact-btn-primary:hover{background:#064b34;color:#fff}
+
+.portal-tab-bar{display:flex;gap:8px;border-bottom:1px solid #e0e9df;padding-bottom:10px;margin-bottom:18px}
+.portal-tab-btn{border:0;background:none;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:700;color:#61766a;cursor:pointer}
+.portal-tab-btn.active{background:#e8f4e5;color:#0d6543}
+
+.portal-modal-backdrop{position:fixed;inset:0;background:rgba(14,34,25,0.55);backdrop-filter:blur(4px);z-index:100;display:grid;place-items:center;padding:20px}
+.portal-modal{background:#fff;border-radius:16px;width:100%;max-width:480px;padding:26px;box-shadow:0 20px 40px rgba(0,0,0,0.2);position:relative}
+.portal-modal-close{position:absolute;top:16px;right:16px;border:0;background:none;cursor:pointer;color:#819382;padding:4px}
+.portal-modal-close:hover{color:#20432e}
+

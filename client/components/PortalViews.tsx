@@ -7,6 +7,9 @@ import { useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { ownedProducts, ProductCard, useFarmerId, useOrders, useProducts, ViewState } from "./PortalCommon";
+import {
+  AdminDashboard, AdminOrders, AdminProducts, AdminSettings, AdminSchemes, AdminSurplus, AdminUsers,
+} from "./AdminViews";
 export { BuyerProductDetail, MyProducts, OrderList, ProductFormPage } from "./PortalWorkflows";
 
 export function UnavailablePage({ name, detail }: { name: string; detail: string }) {
@@ -29,7 +32,7 @@ export function FarmerDashboard() {
       </div>
       <div className="portal-two-col">
         <section className="portal-panel"><div className="portal-panel-head"><h2>Recent orders</h2><Link href="/farmer/orders">View all <ArrowRight size={16} /></Link></div><ViewState loading={orders.isPending} error={orders.error} empty={orders.data?.length ? undefined : "Orders from buyers will appear here."} retry={() => orders.refetch()}>{orders.data?.slice(0, 3).map((order) => <div className="portal-list-row" key={order.id}><span>Order #{order.id.slice(0, 8)}</span><strong>{order.status}</strong></div>)}</ViewState></section>
-        <section className="portal-panel"><div className="portal-panel-head"><h2>Quick actions</h2></div><div className="portal-quick-links"><Link href="/farmer/products/new">Add a product <ArrowRight size={17} /></Link><Link href="/farmer/products">View my products <ArrowRight size={17} /></Link><Link href="/farmer/schemes">Find government schemes <ArrowRight size={17} /></Link></div></section>
+        <section className="portal-panel"><div className="portal-panel-head"><h2>Quick actions</h2></div><div className="portal-quick-links"><Link href="/farmer/buyers">Browse buyer requirements <ArrowRight size={17} /></Link><Link href="/farmer/products/new">Add a product <ArrowRight size={17} /></Link><Link href="/farmer/products">View my products <ArrowRight size={17} /></Link><Link href="/farmer/schemes">Find government schemes <ArrowRight size={17} /></Link></div></section>
       </div>
     </div>
   );
@@ -39,7 +42,31 @@ export function BuyerDashboard() {
   const orders = useOrders();
   const pending = orders.data?.filter((o) => o.status === "PENDING") ?? [];
   const completed = orders.data?.filter((o) => o.status === "COMPLETED") ?? [];
-  return <div className="portal-stack"><div className="portal-stat-grid"><div className="portal-stat"><span>Total orders</span><strong>{orders.isPending ? "…" : orders.data?.length ?? 0}</strong></div><div className="portal-stat"><span>Pending orders</span><strong>{orders.isPending ? "…" : pending.length}</strong></div><div className="portal-stat"><span>Completed orders</span><strong>{orders.isPending ? "…" : completed.length}</strong></div></div><section className="portal-panel"><div className="portal-panel-head"><h2>Recent purchases</h2><Link href="/buyer/orders">View all <ArrowRight size={16} /></Link></div><ViewState loading={orders.isPending} error={orders.error} empty={orders.data?.length ? undefined : "Your purchases will appear here after you place an order."} retry={() => orders.refetch()}>{orders.data?.slice(0, 4).map((order) => <div className="portal-list-row" key={order.id}><span>Order #{order.id.slice(0, 8)}</span><strong>{order.status}</strong></div>)}</ViewState></section><Link className="portal-promo" href="/buyer/marketplace"><span><strong>Find what your business needs</strong><small>Browse fresh produce from local farmers.</small></span><ArrowRight size={24} /></Link></div>;
+  return (
+    <div className="portal-stack">
+      <div className="portal-stat-grid">
+        <div className="portal-stat"><span>Total orders</span><strong>{orders.isPending ? "…" : orders.data?.length ?? 0}</strong></div>
+        <div className="portal-stat"><span>Pending orders</span><strong>{orders.isPending ? "…" : pending.length}</strong></div>
+        <div className="portal-stat"><span>Completed orders</span><strong>{orders.isPending ? "…" : completed.length}</strong></div>
+      </div>
+      <section className="portal-panel">
+        <div className="portal-panel-head"><h2>Recent purchases</h2><Link href="/buyer/orders">View all <ArrowRight size={16} /></Link></div>
+        <ViewState loading={orders.isPending} error={orders.error} empty={orders.data?.length ? undefined : "Your purchases will appear here after you place an order."} retry={() => orders.refetch()}>
+          {orders.data?.slice(0, 4).map((order) => <div className="portal-list-row" key={order.id}><span>Order #{order.id.slice(0, 8)}</span><strong>{order.status}</strong></div>)}
+        </ViewState>
+      </section>
+      <div className="portal-two-col">
+        <Link className="portal-promo" href="/buyer/marketplace">
+          <span><strong>Find what your business needs</strong><small>Browse fresh produce from local farmers.</small></span>
+          <ArrowRight size={24} />
+        </Link>
+        <Link className="portal-promo" style={{ background: "#134e38" }} href="/buyer/requirements/new">
+          <span><strong>Post a produce requirement</strong><small>&ldquo;I need this product&rdquo; – Let farmers quote directly.</small></span>
+          <ArrowRight size={24} />
+        </Link>
+      </div>
+    </div>
+  );
 }
 
 export function BuyerMarketplace() {
@@ -60,6 +87,12 @@ export function BuyerMarketplace() {
   }, [products.data, sort]);
   return (
     <div className="portal-stack">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f0f8ed", border: "1px solid #d2e7ce", borderRadius: 12, padding: "12px 18px", fontSize: 13, color: "#194d34", flexWrap: "wrap", gap: 10 }}>
+        <span>Cannot find the crop or quantity you need?</span>
+        <Link href="/buyer/requirements/new" style={{ fontWeight: 800, color: "#0d6543", display: "inline-flex", alignItems: "center", gap: 5 }}>
+          Post a requirement (&ldquo;I need this product&rdquo;) <ArrowRight size={15} />
+        </Link>
+      </div>
       <form className="portal-filter-bar" onSubmit={(event) => { event.preventDefault(); setPage(1); setFilters(draft); }}>
         <label><span>Search produce</span><input value={draft.search} onChange={(e) => setDraft({ ...draft, search: e.target.value })} placeholder="Tomatoes, rice, bananas…" /></label>
         <label><span>Category</span><input value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })} placeholder="All categories" /></label>

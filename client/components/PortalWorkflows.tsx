@@ -4,10 +4,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, Package, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, Package, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { api, type Order, type Product, type ProductInput } from "@/lib/api";
+import { api, uploadProductImage, type Order, type Product, type ProductInput } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { useWishlist } from "@/lib/wishlist";
 import { money, ownedProducts, ProductCard, useFarmerId, useOrders, useProducts, ViewState } from "./PortalCommon";
 
 export function MyProducts() {
@@ -46,6 +47,7 @@ function ProductEditor({ id, initial }: { id?: string; initial?: Product }) {
   } : blank);
   const [error, setError] = useState("");
   const [imageUrl, setImageUrl] = useState(initial?.images?.[0] ?? "");
+  const [uploading, setUploading] = useState(false);
   const save = useMutation({
     mutationFn: () => {
       const payload = { ...values, images: imageUrl.trim() ? [imageUrl.trim()] : [] };
@@ -60,7 +62,21 @@ function ProductEditor({ id, initial }: { id?: string; initial?: Product }) {
     onError: (failure: Error) => setError(failure.message),
   });
   const set = (key: keyof ProductInput, value: string) => setValues((current) => ({ ...current, [key]: value }));
+  async function onImageSelected(file?: File) {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return setError("Choose an image smaller than 5 MB.");
+    setError("");
+    setUploading(true);
+    try {
+      setImageUrl(await uploadProductImage(file));
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Image upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  }
   function next() {
+    if (uploading) return setError("Wait for the image upload to finish.");
     const required: Record<number, (keyof ProductInput)[]> = { 0: ["name", "category", "description"], 1: ["quantity", "unit"], 2: ["pricePerUnit"], 4: ["location"] };
     const missing = required[step]?.find((key) => !String(values[key] ?? "").trim());
     if (missing) return setError("Complete all fields in this step before continuing.");
@@ -78,7 +94,7 @@ function ProductEditor({ id, initial }: { id?: string; initial?: Product }) {
         {step === 0 && <div className="portal-form-grid"><label>Product name<input value={values.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Fresh tomatoes" /></label><label>Category<input value={values.category} onChange={(e) => set("category", e.target.value)} placeholder="e.g. Vegetables" /></label><label className="portal-wide">Description<textarea value={values.description} onChange={(e) => set("description", e.target.value)} placeholder="Tell buyers about your harvest" rows={3} /></label></div>}
         {step === 1 && <div className="portal-form-grid"><label>Available quantity<input type="number" min="0.01" step="any" value={values.quantity} onChange={(e) => set("quantity", e.target.value)} disabled={!!id} /></label><label>Unit<select value={values.unit} onChange={(e) => set("unit", e.target.value)}><option value="kg">kg</option><option value="quintal">quintal</option><option value="tonne">tonne</option><option value="piece">piece</option><option value="litre">litre</option></select></label>{id && <p className="portal-muted portal-wide">The current API does not allow changing product quantity after publishing.</p>}</div>}
         {step === 2 && <div className="portal-form-grid"><label>Price per {values.unit}<input type="number" min="0.01" step="any" value={values.pricePerUnit} onChange={(e) => set("pricePerUnit", e.target.value)} placeholder="e.g. 25.00" /></label></div>}
-        {step === 3 && <div className="portal-form-grid"><label className="portal-wide">Product image URL (optional)<input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/your-produce.jpg" /></label><p className="portal-muted portal-wide">Image uploads are not available in the current API. You can add a hosted image URL.</p></div>}
+        {step === 3 && <div className="portal-form-grid"><label className="portal-wide">Product photo (optional)<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={uploading} onChange={(event) => { void onImageSelected(event.target.files?.[0]); event.target.value = ""; }} /></label><p className="portal-muted portal-wide">JPEG, PNG, WebP, or AVIF, up to 5 MB. The photo uploads when selected.</p>{uploading && <p className="portal-muted portal-wide" role="status">Uploading photo...</p>}{imageUrl && <div className="portal-wide"><img src={imageUrl} alt="Product photo preview" style={{ maxWidth: 220, maxHeight: 160, objectFit: "cover", borderRadius: 12 }} /><p><button type="button" className="portal-secondary-button" onClick={() => setImageUrl("")}>Remove photo</button></p></div>}<label className="portal-wide">Or paste an image URL<input type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://example.com/your-produce.jpg" /></label></div>}
         {step === 4 && <div className="portal-form-grid"><label className="portal-wide">Farm or pickup location<input value={values.location} onChange={(e) => set("location", e.target.value)} placeholder="District, state" /></label></div>}
         {step === 5 && <dl className="portal-review"><div><dt>Product</dt><dd>{values.name} · {values.category}</dd></div><div><dt>Quantity</dt><dd>{values.quantity} {values.unit}</dd></div><div><dt>Price</dt><dd>{money(values.pricePerUnit)} / {values.unit}</dd></div><div><dt>Location</dt><dd>{values.location}</dd></div><div><dt>Image</dt><dd>{imageUrl || "No image added"}</dd></div></dl>}
         {error && <p className="portal-error" role="alert">{error}</p>}
@@ -91,7 +107,9 @@ function ProductEditor({ id, initial }: { id?: string; initial?: Product }) {
 export function BuyerProductDetail({ id }: { id: string }) {
   const router = useRouter();
   const product = useQuery({ queryKey: ["product", id], queryFn: () => api<Product>(`products/${id}`) });
-  const [quantity, setQuantity] = useState("1");
+  const { has, toggle, mounted } = useWishlist();
+  const wishlisted = mounted && has(id);
+  const [quantity, setQuantity] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
@@ -105,13 +123,90 @@ export function BuyerProductDetail({ id }: { id: string }) {
   const item = product.data;
   const available = Number(item.availableQuantity);
   const count = Number(quantity);
+  function updateQuantity(raw: string) {
+    if (raw === "") {
+      setQuantity("");
+      setError("");
+      return;
+    }
+    if (!/^(?:0|[1-9]\d*)(?:\.\d{0,3})?$/.test(raw)) return;
+    if (Number(raw) > available) {
+      setQuantity(String(item.availableQuantity));
+      setError(`Only ${item.availableQuantity} ${item.unit} available.`);
+      return;
+    }
+    setQuantity(raw);
+    setError("");
+  }
   function placeOrder() {
-    if (!Number.isFinite(count) || count <= 0 || count > available) return setError("Enter a quantity within the available amount.");
+    if (!Number.isFinite(available) || !Number.isFinite(count) || count <= 0 || count > available) return setError("Enter a quantity within the available amount.");
     if (!address.trim()) return setError("Enter a delivery address.");
     setError("");
     order.mutate();
   }
-  return <div className="portal-detail-grid"><div className="portal-detail-image">{item.images?.[0] ? <img src={item.images[0]} alt={item.name} /> : <Package size={72} />}</div><div className="portal-panel portal-detail-info"><span className="portal-chip">{item.category}</span><h2>{item.name}</h2><p>{item.description || "No description provided."}</p><dl className="portal-review"><div><dt>Price</dt><dd>{money(item.pricePerUnit)} / {item.unit}</dd></div><div><dt>Available</dt><dd>{item.availableQuantity} {item.unit}</dd></div><div><dt>Location</dt><dd>{item.location || "Not listed"}</dd></div><div><dt>Farmer</dt><dd>{item.farmer?.name || "Farmer details unavailable"}</dd></div></dl><div className="portal-order-form"><h3>Place an order</h3><label>Quantity ({item.unit})<input type="number" min="0.001" max={available} step="0.001" value={quantity} onChange={(e) => setQuantity(e.target.value)} /></label><label>Delivery address<textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} placeholder="Where should this order go?" /></label><label>Notes (optional)<textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} /></label><p className="portal-total">Estimated total <strong>{money(Number(item.pricePerUnit) * (Number.isFinite(count) ? count : 0))}</strong></p>{error && <p className="portal-error" role="alert">{error}</p>}<button type="button" className="portal-button" disabled={order.isPending || available <= 0} onClick={placeOrder}>{order.isPending ? "Placing order…" : "Place order"}</button></div></div></div>;
+  return (
+    <div className="portal-detail-grid">
+      <div className="portal-detail-image">
+        {item.images?.[0] ? <img src={item.images[0]} alt={item.name} /> : <Package size={72} />}
+      </div>
+      <div className="portal-panel portal-detail-info">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+          <span className="portal-chip">{item.category}</span>
+          <button
+            type="button"
+            className={`portal-wishlist-toggle ${wishlisted ? "active" : ""}`}
+            style={{ position: "static" }}
+            aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            title={wishlisted ? "Remove from wishlist" : "Save to wishlist"}
+            onClick={() => toggle(id)}
+          >
+            <Heart
+              size={18}
+              fill={wishlisted ? "#e53e3e" : "none"}
+              stroke={wishlisted ? "#e53e3e" : "#4b6757"}
+              strokeWidth={wishlisted ? 0 : 2}
+            />
+          </button>
+        </div>
+        <h2>{item.name}</h2>
+        <p>{item.description || "No description provided."}</p>
+        <dl className="portal-review">
+          <div><dt>Price</dt><dd>{money(item.pricePerUnit)} / {item.unit}</dd></div>
+          <div><dt>Available</dt><dd>{item.availableQuantity} {item.unit}</dd></div>
+          <div><dt>Location</dt><dd>{item.location || "Not listed"}</dd></div>
+          <div><dt>Farmer</dt><dd>{item.farmer?.name || "Farmer details unavailable"}</dd></div>
+        </dl>
+        <div className="portal-order-form">
+          <h3>Place an order</h3>
+          <label>Quantity ({item.unit})<input type="number" min="0.001" max={available} step="0.001" value={quantity} onChange={(e) => updateQuantity(e.target.value)} /></label>
+          <label>Delivery address<textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} placeholder="Where should this order go?" /></label>
+          <label>Notes (optional)<textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} /></label>
+          <p className="portal-total">Estimated total <strong>{money(Number(item.pricePerUnit) * (Number.isFinite(count) ? count : 0))}</strong></p>
+          {error && <p className="portal-error" role="alert">{error}</p>}
+          <div style={{ display: "flex", gap: "10px", marginTop: "12px", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="portal-button"
+              disabled={order.isPending || !quantity || !Number.isFinite(available) || count <= 0 || count > available}
+              onClick={placeOrder}
+              style={{ flex: 1, minWidth: "150px" }}
+            >
+              {order.isPending ? "Placing order…" : "Place order"}
+            </button>
+            <button
+              type="button"
+              className="portal-secondary-button"
+              onClick={() => toggle(id)}
+              style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+            >
+              <Heart size={17} fill={wishlisted ? "#e53e3e" : "none"} stroke={wishlisted ? "#e53e3e" : "currentColor"} />
+              <span>{wishlisted ? "Saved" : "Save to Wishlist"}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function OrderList({ role }: { role: "FARMER" | "BUYER" }) {

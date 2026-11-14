@@ -67,6 +67,24 @@ export function setAccessToken(token: string | null) {
   accessToken = token;
 }
 
+export async function uploadProductImage(file: File): Promise<string> {
+  const form = new FormData();
+  form.set("file", file);
+  const headers = new Headers({ Accept: "application/json" });
+  if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
+  const response = await fetch("/api/media/upload", {
+    method: "POST",
+    headers,
+    body: form,
+  });
+  const result = await response.json() as { url?: string; message?: string };
+  if (!response.ok || !result.url) {
+    if (response.status === 401 && accessToken) window.dispatchEvent(new Event("vithu:unauthorized"));
+    throw new ApiError(result.message || "Image upload failed.", response.status);
+  }
+  return result.url;
+}
+
 type Envelope<T> = { success?: boolean; data?: T; message?: string | string[]; error?: string };
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
