@@ -4,10 +4,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, Package, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, Package, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { api, uploadProductImage, type Order, type Product, type ProductInput } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { useWishlist } from "@/lib/wishlist";
 import { money, ownedProducts, ProductCard, useFarmerId, useOrders, useProducts, ViewState } from "./PortalCommon";
 
 export function MyProducts() {
@@ -106,6 +107,8 @@ function ProductEditor({ id, initial }: { id?: string; initial?: Product }) {
 export function BuyerProductDetail({ id }: { id: string }) {
   const router = useRouter();
   const product = useQuery({ queryKey: ["product", id], queryFn: () => api<Product>(`products/${id}`) });
+  const { has, toggle, mounted } = useWishlist();
+  const wishlisted = mounted && has(id);
   const [quantity, setQuantity] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
@@ -141,7 +144,69 @@ export function BuyerProductDetail({ id }: { id: string }) {
     setError("");
     order.mutate();
   }
-  return <div className="portal-detail-grid"><div className="portal-detail-image">{item.images?.[0] ? <img src={item.images[0]} alt={item.name} /> : <Package size={72} />}</div><div className="portal-panel portal-detail-info"><span className="portal-chip">{item.category}</span><h2>{item.name}</h2><p>{item.description || "No description provided."}</p><dl className="portal-review"><div><dt>Price</dt><dd>{money(item.pricePerUnit)} / {item.unit}</dd></div><div><dt>Available</dt><dd>{item.availableQuantity} {item.unit}</dd></div><div><dt>Location</dt><dd>{item.location || "Not listed"}</dd></div><div><dt>Farmer</dt><dd>{item.farmer?.name || "Farmer details unavailable"}</dd></div></dl><div className="portal-order-form"><h3>Place an order</h3><label>Quantity ({item.unit})<input type="number" min="0.001" max={available} step="0.001" value={quantity} onChange={(e) => updateQuantity(e.target.value)} /></label><label>Delivery address<textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} placeholder="Where should this order go?" /></label><label>Notes (optional)<textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} /></label><p className="portal-total">Estimated total <strong>{money(Number(item.pricePerUnit) * (Number.isFinite(count) ? count : 0))}</strong></p>{error && <p className="portal-error" role="alert">{error}</p>}<button type="button" className="portal-button" disabled={order.isPending || !quantity || !Number.isFinite(available) || count <= 0 || count > available} onClick={placeOrder}>{order.isPending ? "Placing order…" : "Place order"}</button></div></div></div>;
+  return (
+    <div className="portal-detail-grid">
+      <div className="portal-detail-image">
+        {item.images?.[0] ? <img src={item.images[0]} alt={item.name} /> : <Package size={72} />}
+      </div>
+      <div className="portal-panel portal-detail-info">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+          <span className="portal-chip">{item.category}</span>
+          <button
+            type="button"
+            className={`portal-wishlist-toggle ${wishlisted ? "active" : ""}`}
+            style={{ position: "static" }}
+            aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            title={wishlisted ? "Remove from wishlist" : "Save to wishlist"}
+            onClick={() => toggle(id)}
+          >
+            <Heart
+              size={18}
+              fill={wishlisted ? "#e53e3e" : "none"}
+              stroke={wishlisted ? "#e53e3e" : "#4b6757"}
+              strokeWidth={wishlisted ? 0 : 2}
+            />
+          </button>
+        </div>
+        <h2>{item.name}</h2>
+        <p>{item.description || "No description provided."}</p>
+        <dl className="portal-review">
+          <div><dt>Price</dt><dd>{money(item.pricePerUnit)} / {item.unit}</dd></div>
+          <div><dt>Available</dt><dd>{item.availableQuantity} {item.unit}</dd></div>
+          <div><dt>Location</dt><dd>{item.location || "Not listed"}</dd></div>
+          <div><dt>Farmer</dt><dd>{item.farmer?.name || "Farmer details unavailable"}</dd></div>
+        </dl>
+        <div className="portal-order-form">
+          <h3>Place an order</h3>
+          <label>Quantity ({item.unit})<input type="number" min="0.001" max={available} step="0.001" value={quantity} onChange={(e) => updateQuantity(e.target.value)} /></label>
+          <label>Delivery address<textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} placeholder="Where should this order go?" /></label>
+          <label>Notes (optional)<textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} /></label>
+          <p className="portal-total">Estimated total <strong>{money(Number(item.pricePerUnit) * (Number.isFinite(count) ? count : 0))}</strong></p>
+          {error && <p className="portal-error" role="alert">{error}</p>}
+          <div style={{ display: "flex", gap: "10px", marginTop: "12px", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="portal-button"
+              disabled={order.isPending || !quantity || !Number.isFinite(available) || count <= 0 || count > available}
+              onClick={placeOrder}
+              style={{ flex: 1, minWidth: "150px" }}
+            >
+              {order.isPending ? "Placing order…" : "Place order"}
+            </button>
+            <button
+              type="button"
+              className="portal-secondary-button"
+              onClick={() => toggle(id)}
+              style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+            >
+              <Heart size={17} fill={wishlisted ? "#e53e3e" : "none"} stroke={wishlisted ? "#e53e3e" : "currentColor"} />
+              <span>{wishlisted ? "Saved" : "Save to Wishlist"}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function OrderList({ role }: { role: "FARMER" | "BUYER" }) {

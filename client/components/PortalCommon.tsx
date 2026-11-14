@@ -3,8 +3,9 @@
 /* eslint-disable @next/next/no-img-element -- Product images use backend-provided URLs from arbitrary hosts. */
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Package, Sprout, TriangleAlert } from "lucide-react";
+import { Heart, Package, Sprout, TriangleAlert } from "lucide-react";
 import { api, getPage, type Order, type Product } from "@/lib/api";
+import { useWishlist } from "@/lib/wishlist";
 
 export const money = (value: string | number | undefined) => {
   const amount = Number(value);
@@ -53,9 +54,40 @@ export function ViewState({ loading, error, empty, children, retry }: {
   return <>{children}</>;
 }
 
-export function ProductCard({ product, href }: { product: Product; href: string }) {
+export function ProductCard({
+  product,
+  href,
+  showWishlist = true,
+}: {
+  product: Product;
+  href: string;
+  showWishlist?: boolean;
+}) {
+  const { has, toggle, mounted } = useWishlist();
+  const wishlisted = mounted && has(product.id);
+
   return (
-    <article className="portal-product-card">
+    <article className="portal-product-card" style={{ position: "relative" }}>
+      {showWishlist && (
+        <button
+          type="button"
+          className={`portal-wishlist-toggle ${wishlisted ? "active" : ""}`}
+          aria-label={wishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+          title={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggle(product.id);
+          }}
+        >
+          <Heart
+            size={18}
+            fill={wishlisted ? "#e53e3e" : "none"}
+            stroke={wishlisted ? "#e53e3e" : "#4b6757"}
+            strokeWidth={wishlisted ? 0 : 2}
+          />
+        </button>
+      )}
       <Link href={href} className="portal-product-image">
         {product.images?.[0] ? <img src={product.images[0]} alt={product.name} /> : <Package size={45} aria-hidden="true" />}
       </Link>

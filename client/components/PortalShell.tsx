@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import {
-  BadgeIndianRupee, BookOpen, Building2, ClipboardList, Heart, LayoutDashboard,
+  BadgeIndianRupee, BookOpen, Building2, ClipboardList, ClipboardPlus, Heart, LayoutDashboard,
   Link2, LogOut, Package, Search, Settings, ShieldCheck, Sprout, TrendingUp, Users,
   type LucideIcon,
 } from "lucide-react";
@@ -18,7 +18,7 @@ const navigation: Record<Role, NavItem[]> = {
     { label: "Overview", href: "/farmer/dashboard", icon: LayoutDashboard },
     { label: "My products", href: "/farmer/products", icon: Package },
     { label: "Orders", href: "/farmer/orders", icon: ClipboardList },
-    { label: "Buyers", href: "/farmer/buyers", icon: Users },
+    { label: "Buyer Requests", href: "/farmer/buyers", icon: Users },
     { label: "Schemes", href: "/farmer/schemes", icon: BookOpen },
     { label: "Surplus", href: "/farmer/surplus", icon: TrendingUp },
     { label: "Profile", href: "/farmer/profile", icon: Sprout },
@@ -26,6 +26,7 @@ const navigation: Record<Role, NavItem[]> = {
   BUYER: [
     { label: "Overview", href: "/buyer/dashboard", icon: LayoutDashboard },
     { label: "Marketplace", href: "/buyer/marketplace", icon: Search },
+    { label: "Post requirement", href: "/buyer/requirements", icon: ClipboardPlus },
     { label: "Orders", href: "/buyer/orders", icon: ClipboardList },
     { label: "Wishlist", href: "/buyer/wishlist", icon: Heart },
     { label: "Profile", href: "/buyer/profile", icon: Users },
@@ -96,7 +97,7 @@ export function PortalShell({
         <p className="portal-role">{roleLabel[role]}</p>
         <nav aria-label={roleLabel[role]} className="portal-nav">
           {nav.map(({ label, href, icon: Icon }) => (
-            <Link key={href} href={href} className={pathname === href || (href.endsWith("/products") && pathname.startsWith(href + "/")) || (href.endsWith("/marketplace") && pathname.startsWith("/buyer/products/")) ? "portal-nav-active" : ""}>
+            <Link key={href} href={href} className={pathname === href || (href.endsWith("/products") && pathname.startsWith(href + "/")) || (href.endsWith("/marketplace") && pathname.startsWith("/buyer/products/")) || (href.endsWith("/requirements") && pathname.startsWith(href + "/")) ? "portal-nav-active" : ""}>
               <Icon size={18} strokeWidth={1.9} /><span>{label}</span>
             </Link>
           ))}

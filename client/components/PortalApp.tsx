@@ -11,6 +11,9 @@ import {
 import {
   BuyerDashboard, BuyerMarketplace, FarmerDashboard, ProfilePage, UnavailablePage,
 } from "./PortalViews";
+import {
+  BuyerRequirementFormPage, BuyerRequirementsPage, BuyerWishlistPage, FarmerBuyerRequirements,
+} from "./PortalRequirements";
 import { BuyerProductDetail, MyProducts, OrderList, ProductFormPage } from "./PortalWorkflows";
 import type { Role } from "@/lib/api";
 
@@ -34,7 +37,7 @@ function PortalBody({ role }: { role: Role }) {
     else if (section === "products" && !parts[1]) page = { title: "My products", description: "Keep your available produce up to date.", content: <MyProducts />, action: <Link className="portal-button" href="/farmer/products/new"><Plus size={17} /> Add product</Link> };
     else if (section === "orders" && !parts[1]) page = { title: "Orders", description: "Review requests from buyers and keep them updated.", content: <OrderList role="FARMER" /> };
     else if (section === "profile") page = { title: "Your profile", description: "Your account and farm information.", content: <ProfilePage role="FARMER" /> };
-    else if (section === "buyers") page = { title: "Buyers", description: "Find people interested in your produce.", content: unavailable("Buyer connections", "The API does not yet provide farmer-to-buyer matching or connection endpoints.") };
+    else if (section === "buyers" || section === "requirements") page = { title: "Buyer Requirements", description: "Direct produce requests from buyers looking for harvest. Connect with buyers directly.", content: <FarmerBuyerRequirements /> };
     else if (section === "schemes") page = { title: "Government schemes", description: "Support that may be relevant to your farm.", content: unavailable("Scheme recommendations", "The API does not yet provide schemes, eligibility results, or official application links.") };
     else if (section === "surplus") page = { title: "Surplus products", description: "Give remaining produce another chance to sell.", content: unavailable("Surplus matching", "The API does not yet provide sold-versus-remaining quantities or surplus buyer matching.") };
     else page = { title: "Page not found", description: "", content: <Link href="/farmer/dashboard">Go to overview</Link> };
@@ -43,7 +46,9 @@ function PortalBody({ role }: { role: Role }) {
     else if (section === "marketplace") page = { title: "Marketplace", description: "Find fresh produce from farmers.", content: <BuyerMarketplace /> };
     else if (section === "products" && parts[1]) page = { title: "Product details", description: "Check availability and place your order.", content: <BuyerProductDetail id={parts[1]} /> };
     else if (section === "orders") page = { title: "Your orders", description: "Track purchases and their current status.", content: <OrderList role="BUYER" /> };
-    else if (section === "wishlist") page = { title: "Wishlist", description: "Products you would like to save.", content: unavailable("Saved products", "The API does not yet provide a wishlist endpoint, so products cannot be saved across visits.") };
+    else if (section === "requirements" && parts[1] === "new") page = { title: "Post a requirement", description: "Let farmers know what produce you need, quantity, and budget.", content: <BuyerRequirementFormPage /> };
+    else if (section === "requirements") page = { title: "Produce requirements", description: "Post and track produce you need from farmers.", content: <BuyerRequirementsPage />, action: <Link className="portal-button" href="/buyer/requirements/new"><Plus size={17} /> Post requirement</Link> };
+    else if (section === "wishlist") page = { title: "Your wishlist", description: "Saved produce items from the marketplace.", content: <BuyerWishlistPage /> };
     else if (section === "profile") page = { title: "Your profile", description: "Your account and buyer information.", content: <ProfilePage role="BUYER" /> };
     else page = { title: "Page not found", description: "", content: <Link href="/buyer/dashboard">Go to overview</Link> };
   } else if (role === "ADMIN") {
