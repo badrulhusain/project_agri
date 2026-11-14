@@ -10,8 +10,22 @@ import {
   Matches,
   MaxLength,
 } from 'class-validator';
-import type { Role, SchemeStatus, SurplusStatus, ProductStatus } from '@prisma/client';
+import type { Role, ProductStatus } from '@prisma/client';
 import { PageDto } from '../common/dto.js';
+
+export type SchemeStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED';
+export const SchemeStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  CLOSED: 'CLOSED',
+} as const;
+
+export type SurplusStatus = 'OPEN' | 'RESOLVED' | 'CANCELLED';
+export const SurplusStatus = {
+  OPEN: 'OPEN',
+  RESOLVED: 'RESOLVED',
+  CANCELLED: 'CANCELLED',
+} as const;
 
 export class AdminUserQueryDto extends PageDto {
   @ApiPropertyOptional({ enum: ['FARMER', 'BUYER', 'ADMIN'] })

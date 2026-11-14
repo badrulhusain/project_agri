@@ -8,9 +8,22 @@ import {
   MaxLength,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import type { RequirementStatus, UrgencyLevel } from '@prisma/client';
 import { PageDto } from '../common/dto.js';
 import { pricePattern, quantityPattern } from '../products/products.dto.js';
+
+export type RequirementStatus = 'OPEN' | 'FULFILLED' | 'CLOSED';
+export const RequirementStatus = {
+  OPEN: 'OPEN',
+  FULFILLED: 'FULFILLED',
+  CLOSED: 'CLOSED',
+} as const;
+
+export type UrgencyLevel = 'NORMAL' | 'HIGH' | 'URGENT';
+export const UrgencyLevel = {
+  NORMAL: 'NORMAL',
+  HIGH: 'HIGH',
+  URGENT: 'URGENT',
+} as const;
 
 export class CreateBuyerRequirementDto {
   @ApiProperty({ example: 'Fresh Red Onions' })

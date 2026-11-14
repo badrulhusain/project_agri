@@ -55,8 +55,10 @@ export function useWishlist() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setWishlistIds(getWishlistIds());
-    setMounted(true);
+    queueMicrotask(() => {
+      setWishlistIds(getWishlistIds());
+      setMounted(true);
+    });
 
     const handleUpdate = () => {
       setWishlistIds(getWishlistIds());

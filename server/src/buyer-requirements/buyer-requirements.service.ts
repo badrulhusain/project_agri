@@ -136,7 +136,7 @@ export class BuyerRequirementsService {
   }
 
   async list(query: BuyerRequirementQueryDto) {
-    const where: Prisma.BuyerRequirementWhereInput = {
+    const where: Record<string, any> = {
       status: query.status ?? 'OPEN',
       ...(query.category
         ? { category: { equals: query.category, mode: 'insensitive' } }
@@ -193,7 +193,7 @@ export class BuyerRequirementsService {
 
   async listMy(actor: Actor, query: PageDto) {
     const buyerId = await this.resolveBuyerId(actor);
-    const where: Prisma.BuyerRequirementWhereInput = {
+    const where: Record<string, any> = {
       buyerId,
     };
 
@@ -246,7 +246,7 @@ export class BuyerRequirementsService {
       throw new ForbiddenException('You do not own this requirement');
     }
 
-    const data: Prisma.BuyerRequirementUpdateInput = {
+    const data: Record<string, any> = {
       ...(input.status ? { status: input.status } : {}),
       ...(input.productName ? { productName: input.productName.trim() } : {}),
       ...(input.category ? { category: input.category.trim() } : {}),
