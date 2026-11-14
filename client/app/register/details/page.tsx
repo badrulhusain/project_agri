@@ -7,6 +7,13 @@ import { Suspense, useState } from "react";
 
 type Role = "farmer" | "buyer" | "agency";
 
+type RegistrationFields = {
+  name: string;
+  phone: string;
+  email?: string;
+  password: string;
+};
+
 const roleNames: Record<Role, string> = {
   farmer: "Farmer",
   buyer: "Buyer",
@@ -21,6 +28,7 @@ function RegistrationDetails() {
       ? requestedRole
       : null;
   const [message, setMessage] = useState("");
+  const [fields, setFields] = useState<RegistrationFields>({ name: "", phone: "", password: "" });
 
   if (!role) {
     return (
@@ -63,16 +71,16 @@ function RegistrationDetails() {
               setMessage("Account registration is not connected to the backend yet. No details were submitted.");
             }}
           >
-            <label>Full name<input name="name" type="text" autoComplete="name" required placeholder="Your name" /></label>
-            <label>Phone number<input name="phone" type="tel" autoComplete="tel" required placeholder="Your phone number" /></label>
+            <label>Full name<input name="name" type="text" autoComplete="name" required value={fields.name} onChange={(event) => setFields({ ...fields, name: event.target.value })} placeholder="Your name" /></label>
+            <label>Phone number<input name="phone" type="tel" autoComplete="tel" required value={fields.phone} onChange={(event) => setFields({ ...fields, phone: event.target.value })} pattern={"\\+?[1-9]\\d{7,14}"} title="Enter 8 to 15 digits, optionally starting with +" placeholder="Your phone number" /></label>
             {role !== "farmer" && (
               <label>
                 {role === "buyer" ? "Business name" : "Agency name"}
                 <input name="organization" type="text" required placeholder={role === "buyer" ? "Your business" : "Your agency"} />
               </label>
             )}
-            <label>Email address<input name="email" type="email" autoComplete="email" required placeholder="you@example.com" /></label>
-            <label>Password<input name="password" type="password" autoComplete="new-password" minLength={8} required placeholder="At least 8 characters" /></label>
+            <label>Email address (optional)<input name="email" type="email" autoComplete="email" value={fields.email ?? ""} onChange={(event) => setFields({ ...fields, email: event.target.value || undefined })} placeholder="you@example.com" /></label>
+            <label>Password<input name="password" type="password" autoComplete="new-password" minLength={8} required value={fields.password} onChange={(event) => setFields({ ...fields, password: event.target.value })} placeholder="At least 8 characters" /></label>
             <button className="button button-green auth-submit" type="submit">Create account <span aria-hidden="true">↗</span></button>
             {message && <p className="auth-message" role="status">{message}</p>}
           </form>

@@ -17,19 +17,19 @@ export class RegisterDto {
   @Matches(/\S/)
   name!: string;
 
-  @ApiProperty({ example: 'farmer@example.test' })
+  @ApiPropertyOptional({ example: 'farmer@example.test' })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
+  @IsOptional()
   @IsEmail()
   @MaxLength(254)
-  email!: string;
+  email?: string;
 
-  @ApiPropertyOptional({ example: '+919000000001' })
-  @IsOptional()
+  @ApiProperty({ example: '+919000000001' })
   @IsString()
   @Matches(/^\+?[1-9]\d{7,14}$/)
-  phone?: string;
+  phone!: string;
 
   @ApiProperty({ minLength: 10, maxLength: 72 })
   @IsString()
